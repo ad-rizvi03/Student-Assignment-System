@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+/* small custom tweaks */
+.card-shadow {
+  box-shadow: var(--card-shadow, 0 6px 18px rgba(15, 23, 42, 0.08));
+}
+
+/* Theme tuning variables (centralized). Use these to quickly adjust dark/light palettes */
+:root {
+  --page-bg: #ffffff;
+  --page-text: #0f172a; /* slate-900 */
+  --card-bg: rgba(255,255,255,0.90);
+  --card-border: rgba(15,23,42,0.06);
+  /* warmer subtle highlight for light cards */
+  --card-shadow: 0 8px 22px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 200, 150, 0.03);
+  --muted-text: #6b7280;
+  --ring-rgb: 59,130,246; /* sky-500 as rgb for ring */
+  /* header badge defaults (light) */
+  --header-badge-bg: #e6eef6; /* slightly darker light badge */
+  --header-badge-fg: #0f172a; /* slate-900 */
+}
+
+/* Dark mode overrides: when `.dark` is added to documentElement */
+.dark {
+  --page-bg: #0b0d0f; /* greyish-black page background */
+  --page-text: #ffffff;
+  /* make cards slightly lighter than page so they are distinguishable */
+  --card-bg: #0f1113; /* dark, slightly lighter than page */
+  --card-border: rgba(255,255,255,0.08);
+  /* subtle warm highlight and soft shadow to lift dark cards */
+  --card-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,180,100,0.02);
+  --muted-text: #cbd5e1;
+  --ring-rgb: 96,165,250; /* lighter ring in dark */
+  /* header badge overrides for dark */
+  --header-badge-bg: rgba(255,255,255,0.08);
+  --header-badge-fg: #ffffff;
+}
+
+/* Helpful utility classes using the custom properties */
+.card-bg-vars { background: var(--card-bg); }
+.card-border { border: 1px solid var(--card-border); }
+
+/* card-surface: apply shadow, border and core surface styles in one utility */
+.card-surface {
+  box-shadow: var(--card-shadow);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* stronger, accessible focus rings for inputs/buttons/links when focused */
+:where(button, a, input, textarea, select):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(var(--ring-rgb), 0.24);
+  border-radius: 6px;
+}
+
+/* Header badge utility for icon/avatar backgrounds */
+.header-badge {
+  background: var(--header-badge-bg);
+  color: var(--header-badge-fg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* header styling removed to allow Tailwind utility classes to control header visuals (including dark mode).
+   Use the Header component classes for gradients, glass effects and backdrop filters. */
+
+.glass-card {
+  background: rgba(255,255,255,0.8);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+

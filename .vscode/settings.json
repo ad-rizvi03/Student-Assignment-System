@@ -1,0 +1,10 @@
+{
+  // Ignore unknown at-rule warnings for Tailwind directives in editors that don't parse PostCSS
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+  // Enable Tailwind Intellisense recommendations if extension is installed
+  "tailwindCSS.includeLanguages": {
+    "plaintext": "html"
+  }
+}
