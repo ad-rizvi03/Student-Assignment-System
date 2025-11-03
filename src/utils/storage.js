@@ -41,3 +41,11 @@ export function getDefaultPrefs() {
     sortBy: 'dueDate'
   }
 }
+
+export function clearState() {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch (e) {
+    console.error('Failed to clear state', e)
+  }
+}

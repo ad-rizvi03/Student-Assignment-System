@@ -1,6 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: var(--background);
+  color: var(--text);
+}
 
 html, body, #root {
   height: 100%;
@@ -11,58 +18,91 @@ html, body, #root {
   box-shadow: var(--card-shadow, 0 6px 18px rgba(15, 23, 42, 0.08));
 }
 
-/* Theme tuning variables (centralized). Use these to quickly adjust dark/light palettes */
+/* Theme tuning variables adapted to the requested palette (Pine, Bronze, Taupe, White) */
 :root {
-  --page-bg: #ffffff;
-  --page-text: #0f172a; /* slate-900 */
-  --card-bg: rgba(255,255,255,0.90);
-  --card-border: rgba(15,23,42,0.06);
-  /* warmer subtle highlight for light cards */
-  --card-shadow: 0 8px 22px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 200, 150, 0.03);
-  --muted-text: #6b7280;
-  --ring-rgb: 59,130,246; /* sky-500 as rgb for ring */
-  /* header badge defaults (light) */
-  --header-badge-bg: #e6eef6; /* slightly darker light badge */
-  --header-badge-fg: #0f172a; /* slate-900 */
+  --pine: #057A75;
+  --bronze: #A39161;
+  --bronze-dark: #8f7b4f;
+  --taupe: #484349;
+  --background: #FFFFFF;
+  --text: #484349; /* purple taupe for headings/body */
+  --muted-text: #6b6b6b;
+  --card-bg: #FFFFFF;
+  --card-border: rgba(163,145,97,0.12);
+  --card-shadow: 0 8px 24px rgba(2,6,23,0.08);
+  --ring-rgb: 5,122,117; /* pine as rgb for focus rings */
+  --header-badge-bg: #F3EFE8; /* soft bronze tint */
+  --header-badge-fg: var(--taupe);
 }
 
-/* Dark mode overrides: when `.dark` is added to documentElement */
+/* Dark mode adjustments (use the same tones but tuned for dark) */
 .dark {
-  --page-bg: #0b0d0f; /* greyish-black page background */
-  --page-text: #ffffff;
-  /* make cards slightly lighter than page so they are distinguishable */
-  --card-bg: #0f1113; /* dark, slightly lighter than page */
-  --card-border: rgba(255,255,255,0.08);
-  /* subtle warm highlight and soft shadow to lift dark cards */
-  --card-shadow: 0 8px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,180,100,0.02);
-  --muted-text: #cbd5e1;
-  --ring-rgb: 96,165,250; /* lighter ring in dark */
-  /* header badge overrides for dark */
-  --header-badge-bg: rgba(255,255,255,0.08);
-  --header-badge-fg: #ffffff;
+  --background: #071615;
+  --card-bg: #0b1413;
+  --text: #EDEBE9;
+  --muted-text: #BFC9C7;
+  --card-border: rgba(255,255,255,0.04);
+  --card-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  --header-badge-bg: rgba(255,255,255,0.04);
 }
 
-/* Helpful utility classes using the custom properties */
-.card-bg-vars { background: var(--card-bg); }
-.card-border { border: 1px solid var(--card-border); }
-
-/* card-surface: apply shadow, border and core surface styles in one utility */
+/* helpful utilities */
 .card-surface {
   box-shadow: var(--card-shadow);
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
+  border-radius: 1rem;
 }
 
-/* stronger, accessible focus rings for inputs/buttons/links when focused */
+/* Bronze button utilities for a metallic feel */
+.btn-bronze {
+  background: var(--bronze);
+  color: #fff;
+  border-radius: 0.5rem;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+.btn-bronze:hover {
+  background: var(--bronze-dark);
+  transform: translateY(-1px) scale(1.01);
+}
+.btn-bronze:active {
+  transform: translateY(0) scale(0.995);
+}
+
+/* subtle bronze shimmer on hover */
+.bronze-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.bronze-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 240%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+  transform: skewX(-20deg);
+  transition: opacity 200ms ease;
+  opacity: 0;
+}
+.bronze-shimmer:hover::after {
+  animation: bronze-shimmer 900ms linear forwards;
+  opacity: 1;
+}
+@keyframes bronze-shimmer {
+  from { left: -120%; }
+  to { left: 120%; }
+}
+
 :where(button, a, input, textarea, select):focus-visible {
   outline: none;
-  box-shadow: 0 0 0 4px rgba(var(--ring-rgb), 0.24);
-  border-radius: 6px;
+  box-shadow: 0 0 0 4px rgba(var(--ring-rgb), 0.14);
+  border-radius: 8px;
 }
 
-/* Header badge utility for icon/avatar backgrounds */
 .header-badge {
   background: var(--header-badge-bg);
   color: var(--header-badge-fg);
@@ -73,12 +113,20 @@ html, body, #root {
   backdrop-filter: blur(6px);
 }
 
-/* header styling removed to allow Tailwind utility classes to control header visuals (including dark mode).
-   Use the Header component classes for gradients, glass effects and backdrop filters. */
+/* typography & base */
+.glass-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(6px); }
 
-.glass-card {
-  background: rgba(255,255,255,0.8);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+/* App dark theme background (large, dramatic gradient inspired by the login screen) */
+.app-bg {
+  background: var(--background);
+}
+.dark .app-bg {
+  background-image:
+    radial-gradient(800px 400px at 5% 10%, rgba(255,255,255,0.02), transparent 10%),
+    linear-gradient(135deg, rgba(5,122,117,0.06) 0%, rgba(3,47,44,0.55) 35%, rgba(6,30,29,0.85) 70%, rgba(8,8,8,0.95) 100%),
+    linear-gradient(315deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.6) 100%);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 

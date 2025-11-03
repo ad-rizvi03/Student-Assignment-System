@@ -6,6 +6,7 @@ import EditAssignmentModal from '../components/EditAssignmentModal'
 import { PlusCircle } from 'lucide-react'
 
 import { isAdmin, canEditAssignment } from '../utils/permissions'
+import { getDisplayName } from '../utils/user'
 
 export default function AdminView({ currentUser, users, assignments, onUpdate, layout = 'grid' }) {
   const [openForm, setOpenForm] = useState(false)
@@ -149,7 +150,7 @@ export default function AdminView({ currentUser, users, assignments, onUpdate, l
               <div className="mt-3 grid gap-3">
                 {users.filter(u => u.role === 'student').map(s => (
                   <div key={s.id} className="flex items-center gap-4">
-                    <div className="w-36 text-sm">{s.name}</div>
+                    <div className="w-36 text-sm">{getDisplayName(s)}</div>
                     <div className="flex-1">
                       <ProgressBar percent={pctForAssignment(a, s.id)} />
                     </div>
@@ -184,7 +185,7 @@ export default function AdminView({ currentUser, users, assignments, onUpdate, l
               <div className="mt-3 space-y-2">
                 {users.filter(u => u.role === 'student').map(s => (
                   <div key={s.id} className="flex items-center gap-4">
-                    <div className="w-36 text-sm">{s.name}</div>
+                    <div className="w-36 text-sm">{getDisplayName(s)}</div>
                     <div className="flex-1">
                       <ProgressBar percent={pctForAssignment(a, s.id)} />
                     </div>
