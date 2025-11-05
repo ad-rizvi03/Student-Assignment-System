@@ -35,14 +35,36 @@ export default function App() {
   const [courses, setCourses] = useState(mockCourses)
   const [groups, setGroups] = useState(mockGroups)
 
+  // Ensure seeded mock courses/assignments are present in the UI even when
+  // local persisted state previously removed them. This merges any missing
+  // mock entries into the current state on first render.
+  React.useEffect(() => {
+    setCourses(prev => {
+      const prevIds = new Set((prev || []).map(c => c.id))
+      const missing = mockCourses.filter(c => !prevIds.has(c.id))
+      return missing.length ? [...(prev || []), ...missing] : prev
+    })
+
+    setAssignments(prev => {
+      const prevAids = new Set((prev || []).map(a => a.id))
+      const missingA = mockAssignments.filter(a => !prevAids.has(a.id))
+      return missingA.length ? [...(prev || []), ...missingA] : prev
+    })
+    // run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const currentPrefs = prefsByUser[currentUserId] || getDefaultPrefs()
   const [dark, setDark] = useState(currentPrefs.dark)
-  const currentLayout = currentPrefs.layout || 'grid'
+  // keep layout in state so toggles take effect immediately and reliably
+  const [layout, setLayout] = useState(currentPrefs.layout || 'grid')
 
   // when switching user or when prefsByUser changes, sync dark state to that user's preference
   useEffect(() => {
     const p = prefsByUser[currentUserId] || getDefaultPrefs()
     setDark(p.dark)
+    // sync layout state when prefs change (e.g., switching users)
+    setLayout(p.layout || 'grid')
   }, [currentUserId, prefsByUser])
 
   // persist the entire app state including prefsByUser
@@ -74,10 +96,22 @@ export default function App() {
       code: course.code || 'CXXX',
       term: course.term || 'Fall 2025',
       instructorId: course.instructorId || currentUser.id,
-      studentIds: course.studentIds || []
+      // if no studentIds provided, enroll all existing students by default
+      studentIds: (course.studentIds && course.studentIds.length > 0)
+        ? course.studentIds
+        : (users || []).filter(u => u.role === 'student').map(u => u.id)
     }
     setCourses(prev => [...(prev || []), next])
     return next
+  }
+
+  function handleDeleteCourse(courseId) {
+    const ok = window.confirm('Delete this course? This will also remove any assignments for the course. This action cannot be undone.')
+    if (!ok) return
+    // remove course
+    setCourses(prev => (prev || []).filter(c => c.id !== courseId))
+    // remove assignments associated with the course (assignments have courseId in mock data)
+    setAssignments(prev => (prev || []).filter(a => a.courseId !== courseId))
   }
 
   function handleResetDemoData() {
@@ -120,13 +154,18 @@ export default function App() {
 
   function toggleLayoutForCurrentUser(target) {
     // if called with a specific layout, set that; otherwise toggle
-    const next = target ? target : (currentLayout === 'grid' ? 'list' : 'grid')
+    const next = target ? target : (layout === 'grid' ? 'list' : 'grid')
+    // update both local state and persisted prefs
+    setLayout(next)
     updateCurrentUserPrefs({ layout: next })
   }
 
   function handleLogin(userId) {
     // set current user
     setCurrentUserId(userId)
+    // ensure user lands on their Courses page after login
+    setView('courses')
+    setSelectedCourseId(null)
     // persist the current preview dark setting into the user's prefs so their choice carries over
     setPrefsByUser(prev => {
       const next = { ...(prev || {}) }
@@ -145,6 +184,9 @@ export default function App() {
         return next
       })
       setCurrentUserId(newUser.id)
+      // after creating an account, show their courses list
+      setView('courses')
+      setSelectedCourseId(null)
 
       // if the created account is a student and enrollCourseIds provided, add them to those courses
       if (normalized && normalized.role === 'student' && Array.isArray(enrollCourseIds)) {
@@ -232,11 +274,11 @@ export default function App() {
   return (
     <div className="min-h-screen app-bg bg-gray-50 text-slate-900 dark:text-white p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-  <Header users={users} currentUserId={currentUserId} onSwitchUser={setCurrentUserId} dark={dark} onToggleDark={toggleDarkForCurrentUser} layout={currentLayout} onToggleLayout={toggleLayoutForCurrentUser} onNavigate={(v) => { if (v === 'courses') { setView('courses'); setSelectedCourseId(null) } }} onResetDemo={handleResetDemoData} />
+  <Header users={users} currentUserId={currentUserId} onSwitchUser={(id) => { setCurrentUserId(id); setView('courses'); setSelectedCourseId(null) }} dark={dark} onToggleDark={toggleDarkForCurrentUser} layout={currentLayout} onToggleLayout={toggleLayoutForCurrentUser} onNavigate={(v) => { if (v === 'courses') { setView('courses'); setSelectedCourseId(null) } }} onResetDemo={handleResetDemoData} />
 
         <main>
           {view === 'courses' && (
-            <CoursesView currentUser={currentUser} courses={courses} users={users} onOpenCourse={openCourse} layout={currentLayout} onAddCourse={handleAddCourse} />
+            <CoursesView currentUser={currentUser} courses={courses} users={users} onOpenCourse={openCourse} layout={layout} onAddCourse={handleAddCourse} onDeleteCourse={handleDeleteCourse} />
           )}
 
           {view === 'course' && selectedCourse && (
