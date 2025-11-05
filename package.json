@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest",
+    "prebuild": "node ./scripts/ensure-bin-exec.js",
     "build": "vite build",
     "preview": "vite preview"
   },
