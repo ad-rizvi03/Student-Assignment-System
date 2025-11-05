@@ -2,12 +2,15 @@ import React, { useMemo, useState } from 'react'
 import ProgressBar from '../components/ProgressBar'
 import { getDisplayName } from '../utils/user'
 import Toast from '../components/Toast'
+import { Trash2, Edit2 } from 'lucide-react'
 
 export default function AssignmentPage({ course, assignments, users, groups, onUpdateAssignment, onAddGroup, currentUser }) {
   const courseAssignments = assignments.filter(a => a.courseId === course.id)
   const [selected, setSelected] = useState(null)
   const [openForm, setOpenForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', dueDate: '', driveLink: '', submissionType: 'individual', assignedGroupIds: [] })
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({ title: '', description: '', dueDate: '', driveLink: '' })
   const [toast, setToast] = useState(null)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [newGroupName, setNewGroupName] = useState('')
@@ -190,7 +193,30 @@ export default function AssignmentPage({ course, assignments, users, groups, onU
           <div key={a.id} className="rounded-2xl card-surface p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h3 className="font-semibold text-taupe">{a.title}</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-taupe">{a.title}</h3>
+                  {/* show Edit/Delete to the assignment creator or admins */}
+                  {(currentUser && (currentUser.id === a.createdBy || currentUser.role === 'admin')) && (
+                    <div className="flex items-center gap-2">
+                      <button title="Edit assignment" onClick={() => {
+                        // open inline edit form
+                        setEditingId(a.id)
+                        setEditForm({ title: a.title || '', description: a.description || '', dueDate: (() => { try { return new Date(a.dueDate).toISOString().slice(0,16) } catch (e) { return '' } })(), driveLink: a.driveLink || '' })
+                      }} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ml-2">
+                        <Edit2 size={16} className="text-sky-600" />
+                      </button>
+                      <button title="Delete assignment" onClick={() => {
+                        const ok = window.confirm('Delete this assignment? This action cannot be undone.')
+                        if (!ok) return
+                        const next = (assignments || []).filter(x => x.id !== a.id)
+                        onUpdateAssignment(next)
+                      }} className="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 ml-2">
+                        <Trash2 size={16} className="text-rose-600" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="text-sm text-gray-600 mt-1">{a.description}</div>
                 <div className="text-xs text-gray-500 mt-2">Due: {new Date(a.dueDate).toLocaleString()}</div>
                 <div className="mt-3 flex items-center gap-3">
@@ -290,6 +316,32 @@ export default function AssignmentPage({ course, assignments, users, groups, onU
                 })()
               )}
             </div>
+
+            {/* Inline edit form */}
+            {editingId === a.id && (
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                const next = (assignments || []).map(x => {
+                  if (x.id !== a.id) return x
+                  const dueIso = (() => { try { return new Date(editForm.dueDate).toISOString() } catch (e) { return x.dueDate } })()
+                  return { ...x, title: editForm.title || x.title, description: editForm.description || x.description, dueDate: dueIso, driveLink: editForm.driveLink || x.driveLink }
+                })
+                onUpdateAssignment(next)
+                setEditingId(null)
+                setToast({ message: 'Assignment updated' })
+              }} className="mt-3 card-surface p-3 rounded">
+                <div className="grid gap-2 md:grid-cols-2">
+                  <input value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} placeholder="Title" className="border p-2 rounded" />
+                  <input value={editForm.dueDate} onChange={e => setEditForm(f => ({ ...f, dueDate: e.target.value }))} type="datetime-local" placeholder="Due date" className="border p-2 rounded" />
+                  <input value={editForm.driveLink} onChange={e => setEditForm(f => ({ ...f, driveLink: e.target.value }))} placeholder="Drive link" className="border p-2 rounded col-span-2" />
+                  <textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} placeholder="Description" className="border p-2 rounded col-span-2" />
+                </div>
+                <div className="mt-3 flex justify-end gap-2">
+                  <button type="button" onClick={() => setEditingId(null)} className="px-3 py-2 bg-gray-200 rounded">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded">Save changes</button>
+                </div>
+              </form>
+            )}
 
           </div>
         ))}
